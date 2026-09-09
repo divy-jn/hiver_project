@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+
+# Data (large files)
+data/raw/twcs.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cached embeddings (large)
+data/processed/embeddings.npz
+data/processed/retrieval_index.pkl
+
+# Jupyter
+.ipynb_checkpoints/
