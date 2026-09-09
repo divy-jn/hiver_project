@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,32 +20,61 @@ PROMPTS = ROOT / "prompts"
 RAW_CSV = DATA_RAW / "twcs.csv"
 
 # ── Reproducibility ───────────────────────────────────────────────────
-RANDOM_SEED = 42
+RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
 
 # ── LLM ───────────────────────────────────────────────────────────────
-OPENAI_API_KEY = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
-OPENAI_MODEL = os.getenv("LLM_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
-OPENAI_BASE_URL = os.getenv("LLM_BASE_URL", os.getenv("OPENAI_BASE_URL", None))
+# Provider-agnostic names are preferred. OPENAI_* remain supported so the
+# project can also run directly against the standard OpenAI endpoint.
+LLM_API_KEY = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+LLM_MODEL = os.getenv("LLM_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", os.getenv("OPENAI_BASE_URL", None))
+
+# Backward-compatible aliases for existing imports in the codebase.
+OPENAI_API_KEY = LLM_API_KEY
+OPENAI_MODEL = LLM_MODEL
+OPENAI_BASE_URL = LLM_BASE_URL
 
 # ── Embedding model ──────────────────────────────────────────────────
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
 # ── Pipeline defaults ────────────────────────────────────────────────
-MAX_BRAND_SAMPLE = 50_000       # max tweets to load per brand for profiling
-GOLDEN_SET_SIZE = 200           # target golden-set examples
-RETRIEVAL_TOP_K = 5             # top-k for retrieval
-TARGET_INTENTS = (6, 12)        # min/max intents to discover
+MAX_BRAND_SAMPLE = int(os.getenv("MAX_BRAND_SAMPLE", "50000"))
+GOLDEN_SET_SIZE = int(os.getenv("GOLDEN_SET_SIZE", "200"))
+RETRIEVAL_TOP_K = int(os.getenv("RETRIEVAL_TOP_K", "5"))
+TARGET_INTENTS = (6, 12)
 
 # ── Escalation thresholds ────────────────────────────────────────────
-ESCALATION_CONFIDENCE_THRESHOLD = 0.4    # classify confidence below this → escalate
-RETRIEVAL_SCORE_THRESHOLD = 0.3          # retrieval score below this → escalate
+ESCALATION_CONFIDENCE_THRESHOLD = float(
+    os.getenv("ESCALATION_CONFIDENCE_THRESHOLD", "0.4")
+)
+RETRIEVAL_SCORE_THRESHOLD = float(
+    os.getenv("RETRIEVAL_SCORE_THRESHOLD", "0.3")
+)
 
 # ── LLM call settings ────────────────────────────────────────────────
-LLM_TEMPERATURE = 0.0
-LLM_MAX_RETRIES = 3
-LLM_TIMEOUT = 30
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.0"))
+LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
 
-def ensure_dirs():
+
+def ensure_dirs() -> None:
     """Create all output directories."""
-    for d in [DATA_RAW, DATA_PROCESSED, DATA_GOLDEN, REPORTS, FIGURES, TABLES, PROMPTS]:
-        d.mkdir(parents=True, exist_ok=True)
+    for directory in [
+        DATA_RAW,
+        DATA_PROCESSED,
+        DATA_GOLDEN,
+        REPORTS,
+        FIGURES,
+        TABLES,
+        PROMPTS,
+    ]:
+        directory.mkdir(parents=True, exist_ok=True)
+
+
+def require_llm_credentials() -> None:
+    """Fail fast with a clear message when an LLM key is required but missing."""
+    if not LLM_API_KEY:
+        raise RuntimeError(
+            "Missing LLM_API_KEY. Copy .env.example to .env and set LLM_API_KEY "
+            "for your OpenAI-compatible endpoint."
+        )
