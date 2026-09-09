@@ -22,9 +22,9 @@ RAW_CSV = DATA_RAW / "twcs.csv"
 RANDOM_SEED = 42
 
 # ── LLM ───────────────────────────────────────────────────────────────
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", None)
+OPENAI_API_KEY = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+OPENAI_MODEL = os.getenv("LLM_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+OPENAI_BASE_URL = os.getenv("LLM_BASE_URL", os.getenv("OPENAI_BASE_URL", None))
 
 # ── Embedding model ──────────────────────────────────────────────────
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
