@@ -75,15 +75,17 @@ Copy the example and fill in your API key:
 
 ```bash
 cp .env.example .env
-# Edit .env and set OPENAI_API_KEY
+# Edit .env and set LLM_API_KEY
 ```
 
 Required:
-- `OPENAI_API_KEY` — Your OpenAI API key (or compatible API)
+- `LLM_API_KEY` — Your LLM API key (OpenAI or compatible)
 
 Optional:
-- `OPENAI_MODEL` — Model to use (default: `gpt-4o-mini`)
-- `OPENAI_BASE_URL` — Override for compatible APIs (Azure, local, etc.)
+- `LLM_MODEL` — Model to use (default: `gpt-4o-mini`)
+- `LLM_BASE_URL` — Override for compatible APIs (Azure, local Ollama, etc.)
+
+Note: `OPENAI_API_KEY`, `OPENAI_MODEL`, and `OPENAI_BASE_URL` are still supported for backward compatibility, but the `LLM_*` prefix is preferred to reflect the provider-agnostic design.
 
 ## Run Pipeline
 

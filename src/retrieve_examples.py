@@ -13,7 +13,7 @@ import sys
 import pickle
 import numpy as np
 from pathlib import Path
-from src.config import DATA_PROCESSED, EMBEDDING_MODEL, RETRIEVAL_TOP_K, ensure_dirs
+from src.config import DATA_PROCESSED, DATA_GOLDEN, EMBEDDING_MODEL, RETRIEVAL_TOP_K, ensure_dirs
 
 
 def load_resolved_threads() -> list[dict]:
@@ -27,15 +27,26 @@ def load_resolved_threads() -> list[dict]:
     with open(path, encoding="utf-8") as f:
         for line in f:
             t = json.loads(line)
-            if t["resolution"]["resolved"]:
+            if t.get("resolution_heuristic", {}).get("is_resolved", False):
                 threads.append(t)
     return threads
 
 
 def build_retrieval_records(threads: list[dict]) -> list[dict]:
-    """Build retrieval records from resolved threads."""
+    """Build retrieval records from resolved threads, excluding golden threads."""
+    import pandas as pd
+    golden_path = DATA_GOLDEN / "golden_set.csv"
+    golden_ids = set()
+    if golden_path.exists():
+        golden_df = pd.read_csv(golden_path)
+        golden_ids = set(golden_df["thread_id"].dropna().astype(str))
+        
     records = []
     for t in threads:
+        thread_id_str = str(t["thread_id"])
+        if thread_id_str in golden_ids:
+            continue
+            
         # Extract first customer message and last brand response
         customer_msg = ""
         brand_response = ""
@@ -53,7 +64,7 @@ def build_retrieval_records(threads: list[dict]) -> list[dict]:
                 "customer_message": customer_msg,
                 "conversation_context": " | ".join(context_parts[:5]),
                 "brand_response": brand_response,
-                "resolution_type": t["resolution"]["resolution_type"],
+                "resolution_type": t.get("resolution_heuristic", {}).get("resolution_type", "unresolved"),
                 "thread_id": t["thread_id"],
             })
     return records

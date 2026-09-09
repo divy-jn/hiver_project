@@ -26,6 +26,9 @@ RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
 # Provider-agnostic names are preferred. OPENAI_* remain supported so the
 # project can also run directly against the standard OpenAI endpoint.
 LLM_API_KEY = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+if not LLM_API_KEY:
+    raise ValueError("Missing required environment variable: LLM_API_KEY (or OPENAI_API_KEY)")
+
 LLM_MODEL = os.getenv("LLM_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", os.getenv("OPENAI_BASE_URL", None))
 

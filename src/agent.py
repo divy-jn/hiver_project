@@ -26,12 +26,12 @@ class SupportAgent:
 
     def _get_client(self):
         if self._client is None:
-            from src.config import OPENAI_API_KEY, OPENAI_BASE_URL
-            if OPENAI_API_KEY:
+            from src.config import LLM_API_KEY, LLM_BASE_URL
+            if LLM_API_KEY:
                 from openai import OpenAI
-                kwargs = {"api_key": OPENAI_API_KEY}
-                if OPENAI_BASE_URL:
-                    kwargs["base_url"] = OPENAI_BASE_URL
+                kwargs = {"api_key": LLM_API_KEY}
+                if LLM_BASE_URL:
+                    kwargs["base_url"] = LLM_BASE_URL
                 self._client = OpenAI(**kwargs)
         return self._client
 

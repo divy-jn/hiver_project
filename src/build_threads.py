@@ -135,12 +135,12 @@ def build_threads(df: pd.DataFrame, brand_id: str) -> list[dict]:
 
         last_msg = messages[-1]
         # Resolution heuristic: brand has last word, or second-to-last
-        resolved = last_msg["author_type"] == "brand"
-        if not resolved and len(messages) >= 2:
-            resolved = messages[-2]["author_type"] == "brand"
+        is_resolved = last_msg["author_type"] == "brand"
+        if not is_resolved and len(messages) >= 2:
+            is_resolved = messages[-2]["author_type"] == "brand"
 
         resolution_text = ""
-        if resolved:
+        if is_resolved:
             # Find last brand message
             for m in reversed(messages):
                 if m["author_type"] == "brand":
@@ -159,10 +159,10 @@ def build_threads(df: pd.DataFrame, brand_id: str) -> list[dict]:
                 }
                 for m in messages
             ],
-            "resolution": {
-                "resolved": resolved,
-                "response_text": resolution_text if resolved else "",
-                "resolution_type": "brand_final" if resolved else "unresolved",
+            "resolution_heuristic": {
+                "is_resolved": is_resolved,
+                "response_text": resolution_text if is_resolved else "",
+                "resolution_type": "brand_final" if is_resolved else "unresolved",
             },
         }
         threads.append(thread)
@@ -198,9 +198,9 @@ def main():
     print(f"Built {len(threads):,} threads")
 
     # Stats
-    resolved = sum(1 for t in threads if t["resolution"]["resolved"])
+    resolved_count = sum(1 for t in threads if t["resolution_heuristic"]["is_resolved"])
     avg_len = sum(t["n_messages"] for t in threads) / max(len(threads), 1)
-    print(f"  Resolved: {resolved:,} ({resolved/max(len(threads),1):.1%})")
+    print(f"  Resolved: {resolved_count:,} ({resolved_count/max(len(threads),1):.1%})")
     print(f"  Avg messages/thread: {avg_len:.1f}")
 
     # Save

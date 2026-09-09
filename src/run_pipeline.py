@@ -28,6 +28,8 @@ PHASES = [
      lambda: (DATA_PROCESSED / "intent_taxonomy.json").exists()),
     ("Create Golden Set", "src.create_golden_set",
      lambda: (DATA_GOLDEN / "golden_set.csv").exists()),
+    ("Create Training Set", "src.create_training_set",
+     lambda: (DATA_PROCESSED / "training_set.csv").exists()),
     ("Majority Baseline", "src.baseline_majority",
      lambda: (TABLES / "baseline_majority.json").exists()),
     ("TF-IDF Baseline", "src.baseline_tfidf",
@@ -75,6 +77,8 @@ def main():
                         help="Run only this phase number")
     parser.add_argument("--force", action="store_true",
                         help="Force re-run even if outputs exist")
+    parser.add_argument("--dev", action="store_true",
+                        help="Run in development mode (allows unreviewed golden labels)")
     args = parser.parse_args()
 
     ensure_dirs()
@@ -100,7 +104,32 @@ def main():
             print(f"  ⏭ Phase {i}: {name} — skipped")
             continue
 
-        success = run_phase(name, module, check, force=args.force)
+        if module == "src.evaluate":
+            # evaluate needs dev_mode argument if running directly via mod
+            import importlib
+            if not args.force and check():
+                print(f"  ✓ {name} — already complete (use --force to re-run)")
+                success = True
+            else:
+                print(f"  → Running {name}...")
+                start = time.time()
+                try:
+                    mod = importlib.import_module(module)
+                    mod.evaluate_pipeline(dev_mode=args.dev)
+                    elapsed = time.time() - start
+                    print(f"  ✓ {name} — completed in {elapsed:.1f}s")
+                    success = True
+                except SystemExit:
+                    print(f"  ✗ {name} — exited (likely missing prerequisite)")
+                    success = False
+                except Exception as e:
+                    print(f"  ✗ {name} — failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    success = False
+        else:
+            success = run_phase(name, module, check, force=args.force)
+            
         results.append((name, success))
 
         if not success and args.only is None:

@@ -77,7 +77,7 @@ def classify_tone(text: str) -> str:
         return "neutral"
 
 
-def should_escalate_heuristic(text: str, thread_depth: int, resolved: bool) -> tuple[bool, str]:
+def should_escalate_heuristic(text: str, thread_depth: int, is_resolved: bool) -> tuple[bool, str]:
     """Heuristic escalation labeling for golden set."""
     text_lower = text.lower()
 
@@ -136,7 +136,7 @@ def stratified_sample(messages, labels, taxonomy, threads, target_size=200):
         intent = intent_map.get(int(label), f"cluster_{label}")
         text = msg["text"]
         tone = classify_tone(text)
-        escalate, esc_reason = should_escalate_heuristic(text, thread_depth, msg["resolved"])
+        escalate, esc_reason = should_escalate_heuristic(text, thread_depth, msg.get("is_resolved", False))
 
         records.append({
             "text": text,
@@ -146,7 +146,7 @@ def stratified_sample(messages, labels, taxonomy, threads, target_size=200):
             "tone": tone,
             "thread_depth": thread_depth,
             "text_length": len(text),
-            "resolved": msg["resolved"],
+            "is_resolved_heuristic": msg.get("is_resolved", False),
             "should_escalate": escalate,
             "escalation_reason": esc_reason,
             "context": context,
@@ -251,7 +251,7 @@ def create_golden_csv(golden_df: pd.DataFrame):
         "example_id", "text", "context", "intent", "should_escalate",
         "escalation_reason", "expected_reply_characteristics",
         "thread_id", "sampling_group", "tone", "text_length",
-        "thread_depth", "resolved", "label_status",
+        "thread_depth", "is_resolved_heuristic", "label_status",
     ]
     # Only include columns that exist
     cols = [c for c in cols if c in golden_df.columns]

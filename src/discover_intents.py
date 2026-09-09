@@ -16,8 +16,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 from collections import Counter
 from src.config import (DATA_PROCESSED, REPORTS, RANDOM_SEED, TARGET_INTENTS,
-                        OPENAI_API_KEY, OPENAI_MODEL, OPENAI_BASE_URL,
-                        LLM_TEMPERATURE, ensure_dirs)
+                        LLM_API_KEY, LLM_MODEL, LLM_BASE_URL,
+                        LLM_TEMPERATURE, LLM_MAX_RETRIES, LLM_TIMEOUT, ensure_dirs)
 
 
 def load_threads() -> list[dict]:
@@ -76,14 +76,14 @@ def cluster_messages(messages: list[dict], n_clusters: int = 10) -> tuple:
 
 def label_clusters_with_llm(cluster_terms: dict, cluster_examples: dict) -> dict:
     """Use LLM to name and define each cluster."""
-    if not OPENAI_API_KEY:
-        print("WARNING: No OPENAI_API_KEY set. Using heuristic labels.")
+    if not LLM_API_KEY:
+        print("WARNING: No LLM_API_KEY set. Using heuristic labels.")
         return label_clusters_heuristic(cluster_terms)
 
     from openai import OpenAI
-    client_kwargs = {"api_key": OPENAI_API_KEY}
-    if OPENAI_BASE_URL:
-        client_kwargs["base_url"] = OPENAI_BASE_URL
+    client_kwargs = {"api_key": LLM_API_KEY}
+    if LLM_BASE_URL:
+        client_kwargs["base_url"] = LLM_BASE_URL
     client = OpenAI(**client_kwargs)
 
     prompt = "You are an expert at customer support intent taxonomy design.\n\n"
@@ -102,9 +102,10 @@ def label_clusters_with_llm(cluster_terms: dict, cluster_examples: dict) -> dict
 
     try:
         response = client.chat.completions.create(
-            model=OPENAI_MODEL,
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=LLM_TEMPERATURE,
+            timeout=LLM_TIMEOUT,
             response_format={"type": "json_object"},
         )
         content = response.choices[0].message.content

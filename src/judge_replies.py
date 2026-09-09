@@ -8,7 +8,7 @@ Produces structured scores per example.
 
 import json
 import re
-from src.config import (OPENAI_API_KEY, OPENAI_MODEL, OPENAI_BASE_URL,
+from src.config import (LLM_API_KEY, LLM_MODEL, LLM_BASE_URL,
                         LLM_TEMPERATURE, LLM_MAX_RETRIES, LLM_TIMEOUT, PROMPTS)
 
 
@@ -101,21 +101,21 @@ def judge_reply(
 
     user_msg = "\n".join(parts)
 
-    if not OPENAI_API_KEY:
+    if not LLM_API_KEY:
         # Cannot judge without API
         return _default_scores("no_api_key")
 
     if _client is None:
         from openai import OpenAI
-        kwargs = {"api_key": OPENAI_API_KEY}
-        if OPENAI_BASE_URL:
-            kwargs["base_url"] = OPENAI_BASE_URL
+        kwargs = {"api_key": LLM_API_KEY}
+        if LLM_BASE_URL:
+            kwargs["base_url"] = LLM_BASE_URL
         _client = OpenAI(**kwargs)
 
     for attempt in range(LLM_MAX_RETRIES):
         try:
             response = _client.chat.completions.create(
-                model=OPENAI_MODEL,
+                model=LLM_MODEL,
                 messages=[
                     {"role": "system", "content": JUDGE_RUBRIC},
                     {"role": "user", "content": user_msg},

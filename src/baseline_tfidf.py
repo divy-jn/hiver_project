@@ -29,32 +29,26 @@ from src.config import DATA_PROCESSED, DATA_GOLDEN, TABLES, FIGURES, RANDOM_SEED
 
 
 def load_training_data():
-    """Load training data from clustered threads (NOT golden set)."""
-    taxonomy_path = DATA_PROCESSED / "intent_taxonomy.json"
-    taxonomy = json.loads(taxonomy_path.read_text(encoding="utf-8"))
-    intent_map = {t["cluster_id"]: t["intent_name"] for t in taxonomy}
-
-    from src.discover_intents import load_threads, extract_customer_messages, cluster_messages
-    threads = load_threads()
-    messages = extract_customer_messages(threads)
-    n_clusters = len(taxonomy)
-    labels, _, _ = cluster_messages(messages, n_clusters)
-
-    # Load golden set to EXCLUDE from training
+    """Load training data from the explicit training set."""
+    path = DATA_PROCESSED / "training_set.csv"
+    if not path.exists():
+        print("ERROR: Run create_training_set first.")
+        sys.exit(1)
+        
+    df = pd.read_csv(path)
+    
+    # Optional sanity check: ensure no golden threads leaked here
     golden_path = DATA_GOLDEN / "golden_set.csv"
-    golden = pd.read_csv(golden_path)
-    golden_thread_ids = set(golden["thread_id"].dropna().astype(str))
-
-    texts = []
-    intents = []
-    for msg, label in zip(messages, labels):
-        # Exclude golden set examples
-        if str(msg["thread_id"]) in golden_thread_ids:
-            continue
-        texts.append(msg["text"])
-        intents.append(intent_map.get(int(label), f"cluster_{label}"))
-
-    return texts, intents
+    if golden_path.exists():
+        golden = pd.read_csv(golden_path)
+        golden_threads = set(golden["thread_id"].dropna().astype(str))
+        train_threads = set(df["thread_id"].dropna().astype(str))
+        leak = train_threads.intersection(golden_threads)
+        if leak:
+            print(f"CRITICAL ERROR: {len(leak)} golden threads found in training set!")
+            sys.exit(1)
+            
+    return df["text"].tolist(), df["intent"].tolist()
 
 
 def load_golden():

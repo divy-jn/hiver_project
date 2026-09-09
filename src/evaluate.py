@@ -26,7 +26,7 @@ from sklearn.metrics import (accuracy_score, f1_score, precision_score,
                              confusion_matrix)
 from tqdm import tqdm
 from src.config import (DATA_GOLDEN, DATA_PROCESSED, REPORTS, TABLES, FIGURES,
-                        OPENAI_API_KEY, RANDOM_SEED, ensure_dirs)
+                        LLM_API_KEY, RANDOM_SEED, ensure_dirs)
 from src.agent import SupportAgent
 from src.judge_replies import judge_reply, save_judge_prompt
 from src.human_judge_agreement import create_human_review_template, compute_agreement
@@ -117,13 +117,18 @@ def plot_confusion_matrix(cm_data, title, filename):
     plt.close()
 
 
-def run_full_evaluation():
+def run_full_evaluation(dev_mode=False):
     """Run the complete evaluation pipeline."""
     ensure_dirs()
     save_judge_prompt()
 
     print("Loading golden set...")
     golden = load_golden()
+    if not dev_mode:
+        if "human_reviewed" not in golden.columns:
+            print("ERROR: Golden set must have 'human_reviewed' column. Run review first.")
+            sys.exit(1)
+        golden = golden[golden["human_reviewed"] == True].copy()
     print(f"Golden set: {len(golden)} examples")
 
     # Initialize agent
@@ -160,7 +165,7 @@ def run_full_evaluation():
             predictions.append(pred)
 
             # Judge the reply
-            if OPENAI_API_KEY:
+            if LLM_API_KEY:
                 scores = judge_reply(
                     customer_message=str(row["text"]),
                     generated_reply=result["reply"],
@@ -170,6 +175,8 @@ def run_full_evaluation():
                 )
                 judge_result = {**pred, **scores}
                 judge_results.append(judge_result)
+            else:
+                print("\nSkipping reply evaluation: No LLM_API_KEY set")
 
         except Exception as e:
             errors.append({"example_id": int(row.get("example_id", idx)),
@@ -177,6 +184,26 @@ def run_full_evaluation():
             print(f"  Error on example {idx}: {e}")
 
     print(f"\nProcessed: {len(predictions)}, Errors: {len(errors)}")
+
+    # Data Leakage Check
+    print(f"\n{'='*50}")
+    print("DATA ISOLATION CHECKS")
+    print(f"{'='*50}")
+    index_path = DATA_PROCESSED / "retrieval_index.pkl"
+    leakage = 0
+    if index_path.exists():
+        import pickle
+        with open(index_path, "rb") as f:
+            idx_records = pickle.load(f)
+        idx_threads = {r["thread_id"] for r in idx_records}
+        golden_threads = set(golden["thread_id"].dropna().astype(str))
+        leak = idx_threads.intersection(golden_threads)
+        leakage = len(leak)
+        if leakage > 0:
+            print(f"FAIL: {leakage} golden threads leaked into retrieval index!")
+        else:
+            print("PASS: 0 golden threads found in retrieval index.")
+    print(f"{'='*50}\n")
 
     # Compute intent metrics
     y_true_intent = [p["true_intent"] for p in predictions]
@@ -221,6 +248,7 @@ def run_full_evaluation():
 
     # Assemble results
     results = {
+        "mode": "development" if dev_mode else "evaluation",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "n_evaluated": len(predictions),
         "n_errors": len(errors),
