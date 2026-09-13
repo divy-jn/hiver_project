@@ -25,6 +25,40 @@ def load_selected_brand() -> str:
     return data["brand"]
 
 
+def evaluate_precedent_quality(brand_text: str) -> str:
+    if not brand_text:
+        return "low_quality"
+    
+    text_lower = brand_text.lower()
+    
+    dm_phrases = ["dm us", "send us a dm", "direct message", "join us in a dm", "meet us in dm", "continue there", "via dm"]
+    has_dm = any(p in text_lower for p in dm_phrases)
+    
+    diagnostic_phrases = ["which version", "what version", "which model", "what device", "are you using", "is installed", "what exactly", "happen when", "happens when", "started"]
+    has_diagnostic = any(p in text_lower for p in diagnostic_phrases)
+    
+    actionable_phrases = ["settings >", "settings &gt;", "restart", "turn off", "tap", "click", "go to", "try", "backup", "back up", "update", "article", "guide", "here's how", "step"]
+    has_actionable = any(p in text_lower for p in actionable_phrases)
+    
+    words = brand_text.split()
+    if len(words) < 5 or (len(words) < 10 and "http" in text_lower):
+        if not has_actionable and not has_diagnostic and not has_dm:
+            return "low_quality"
+            
+    if has_actionable:
+        return "actionable"
+    elif has_diagnostic:
+        return "next_step"
+    elif has_dm:
+        return "dm_escalation"
+    
+    ack_phrases = ["we're here to help", "happy to help", "thanks for", "we want to help", "we understand", "sorry", "glad to hear"]
+    if any(p in text_lower for p in ack_phrases):
+        return "acknowledgement_only"
+        
+    return "low_quality"
+
+
 def build_threads(df: pd.DataFrame, brand_id: str) -> list[dict]:
     """
     Build conversation threads for a given brand.
@@ -160,9 +194,10 @@ def build_threads(df: pd.DataFrame, brand_id: str) -> list[dict]:
                 for m in messages
             ],
             "resolution_heuristic": {
-                "is_resolved": is_resolved,
+                "is_resolved_heuristic": is_resolved,
                 "response_text": resolution_text if is_resolved else "",
                 "resolution_type": "brand_final" if is_resolved else "unresolved",
+                "historical_precedent_quality": evaluate_precedent_quality(resolution_text) if is_resolved else "none"
             },
         }
         threads.append(thread)
@@ -198,7 +233,7 @@ def main():
     print(f"Built {len(threads):,} threads")
 
     # Stats
-    resolved_count = sum(1 for t in threads if t["resolution_heuristic"]["is_resolved"])
+    resolved_count = sum(1 for t in threads if t["resolution_heuristic"]["is_resolved_heuristic"])
     avg_len = sum(t["n_messages"] for t in threads) / max(len(threads), 1)
     print(f"  Resolved: {resolved_count:,} ({resolved_count/max(len(threads),1):.1%})")
     print(f"  Avg messages/thread: {avg_len:.1f}")

@@ -27,8 +27,10 @@ def load_resolved_threads() -> list[dict]:
     with open(path, encoding="utf-8") as f:
         for line in f:
             t = json.loads(line)
-            if t.get("resolution_heuristic", {}).get("is_resolved", False):
-                threads.append(t)
+            if t.get("resolution_heuristic", {}).get("is_resolved_heuristic", False):
+                quality = t.get("resolution_heuristic", {}).get("historical_precedent_quality", "low_quality")
+                if quality in ["actionable", "next_step"]:
+                    threads.append(t)
     return threads
 
 

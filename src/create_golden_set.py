@@ -77,7 +77,7 @@ def classify_tone(text: str) -> str:
         return "neutral"
 
 
-def should_escalate_heuristic(text: str, thread_depth: int, is_resolved: bool) -> tuple[bool, str]:
+def should_escalate_heuristic(text: str, thread_depth: int, is_resolved_heuristic: bool) -> tuple[bool, str]:
     """Heuristic escalation labeling for golden set."""
     text_lower = text.lower()
 
@@ -136,7 +136,7 @@ def stratified_sample(messages, labels, taxonomy, threads, target_size=200):
         intent = intent_map.get(int(label), f"cluster_{label}")
         text = msg["text"]
         tone = classify_tone(text)
-        escalate, esc_reason = should_escalate_heuristic(text, thread_depth, msg.get("is_resolved", False))
+        escalate, esc_reason = should_escalate_heuristic(text, thread_depth, msg.get("is_resolved_heuristic", False))
 
         records.append({
             "text": text,
@@ -146,7 +146,7 @@ def stratified_sample(messages, labels, taxonomy, threads, target_size=200):
             "tone": tone,
             "thread_depth": thread_depth,
             "text_length": len(text),
-            "is_resolved_heuristic": msg.get("is_resolved", False),
+            "is_resolved_heuristic": msg.get("is_resolved_heuristic", False),
             "should_escalate": escalate,
             "escalation_reason": esc_reason,
             "context": context,
@@ -366,6 +366,23 @@ def validate_golden_set(path):
         esc_rate = df["should_escalate"].mean()
         print(f"\nEscalation rate: {esc_rate:.1%}")
 
+    if "label_status" in df.columns:
+        auto = (df["label_status"] == "auto_labeled").sum()
+        human = (df["label_status"] == "human_reviewed").sum()
+        print(f"\nLabel Status:")
+        print(f"  auto_labeled: {auto}")
+        print(f"  human_reviewed: {human}")
+
+    # Golden thread overlap
+    training_path = DATA_PROCESSED / "training_set.csv"
+    if training_path.exists():
+        train_df = pd.read_csv(training_path)
+        train_threads = set(train_df["thread_id"].dropna().astype(str))
+        golden_threads = set(df["thread_id"].dropna().astype(str))
+        leak = train_threads.intersection(golden_threads)
+        print(f"\nLeakage Check:")
+        print(f"  Overlap with training set: {len(leak)} threads")
+
     if issues:
         print("\nValidation ISSUES:")
         for issue in issues:
@@ -377,7 +394,27 @@ def validate_golden_set(path):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--force", action="store_true", help="Overwrite existing golden set")
+    parser.add_argument("--validate", action="store_true", help="Only validate existing golden set")
+    args = parser.parse_args()
+
     ensure_dirs()
+    csv_path = DATA_GOLDEN / "golden_set.csv"
+
+    if args.validate:
+        if not csv_path.exists():
+            print("ERROR: Golden set does not exist to validate.")
+            sys.exit(1)
+        validate_golden_set(csv_path)
+        return
+
+    if csv_path.exists() and not args.force:
+        print(f"File exists: {csv_path}")
+        print("Use --force to overwrite. Skipping golden set creation to protect human reviews.")
+        return
+
     print("Loading data...")
     threads = load_threads()
     taxonomy = load_taxonomy()

@@ -44,7 +44,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 MAX_BRAND_SAMPLE = int(os.getenv("MAX_BRAND_SAMPLE", "50000"))
 GOLDEN_SET_SIZE = int(os.getenv("GOLDEN_SET_SIZE", "200"))
 RETRIEVAL_TOP_K = int(os.getenv("RETRIEVAL_TOP_K", "5"))
-TARGET_INTENTS = (6, 12)
+TARGET_INTENTS = (8, 10)
 
 # ── Escalation thresholds ────────────────────────────────────────────
 ESCALATION_CONFIDENCE_THRESHOLD = float(

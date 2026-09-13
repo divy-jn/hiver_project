@@ -55,7 +55,7 @@ def test_thread_resolution(sample_df):
     """Threads where brand has last message should be marked resolved."""
     threads = build_threads(sample_df, "brand1")
     # At least one thread should be resolved
-    resolved = [t for t in threads if t["resolution_heuristic"]["is_resolved"]]
+    resolved = [t for t in threads if t["resolution_heuristic"]["is_resolved_heuristic"]]
     assert len(resolved) >= 1
     for t in resolved:
         assert t["resolution_heuristic"]["response_text"] != ""

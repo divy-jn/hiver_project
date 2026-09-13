@@ -41,7 +41,7 @@ def extract_customer_messages(threads: list[dict]) -> list[dict]:
                 messages.append({
                     "text": msg["text"],
                     "thread_id": t["thread_id"],
-                    "resolved": t["resolution"]["resolved"],
+                    "resolved": t.get("resolution_heuristic", {}).get("is_resolved_heuristic", False),
                 })
                 break  # first customer message only
     return messages
