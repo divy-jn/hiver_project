@@ -63,7 +63,7 @@ def profile(df: pd.DataFrame) -> dict:
 
     # Timestamp range
     if "created_at" in df.columns and df["created_at"].notna().any():
-        timestamps = pd.to_datetime(df["created_at"], errors="coerce")
+        timestamps = pd.to_datetime(df["created_at"], format="%a %b %d %H:%M:%S %z %Y", errors="coerce")
         ts_min = str(timestamps.min())
         ts_max = str(timestamps.max())
     else:

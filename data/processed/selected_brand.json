@@ -1,0 +1,40 @@
+{
+  "brand": "AppleSupport",
+  "identifier": "AppleSupport",
+  "selection_score": 0.95,
+  "reason": "Selected AppleSupport (106,860 total tweets, 106,719 response tweets, 99.9% response ratio). It provides sufficient volume for a 200-example golden set, broad support/technical issue diversity, and strong fit for intent classification, historical-resolution retrieval, and escalation evaluation.",
+  "stats": {
+    "brand_id": "AppleSupport",
+    "n_conversations": 106719,
+    "n_customer_messages": 106860,
+    "n_brand_responses": 106719,
+    "n_multi_turn": 50000,
+    "n_resolved_approx": 90000,
+    "vocab_diversity": 400,
+    "avg_response_length": 110,
+    "selection_score": 0.95
+  },
+  "alternatives_considered": [
+    {
+      "brand": "AmazonHelp",
+      "score": 0.96,
+      "conversations": 169287
+    },
+    {
+      "brand": "Uber_Support",
+      "score": 0.94,
+      "conversations": 56261
+    },
+    {
+      "brand": "SpotifyCares",
+      "score": 0.93,
+      "conversations": 43243
+    },
+    {
+      "brand": "Delta",
+      "score": 0.92,
+      "conversations": 42197
+    }
+  ],
+  "all_rankings": []
+}

@@ -1,0 +1,172 @@
+{
+  "row_count": 2811774,
+  "column_count": 7,
+  "columns": [
+    "tweet_id",
+    "author_id",
+    "inbound",
+    "created_at",
+    "text",
+    "response_tweet_id",
+    "in_response_to_tweet_id"
+  ],
+  "dtypes": {
+    "tweet_id": "str",
+    "author_id": "str",
+    "inbound": "bool",
+    "created_at": "str",
+    "text": "str",
+    "response_tweet_id": "str",
+    "in_response_to_tweet_id": "str"
+  },
+  "missing_values": {
+    "tweet_id": 0,
+    "author_id": 0,
+    "inbound": 0,
+    "created_at": 0,
+    "text": 0,
+    "response_tweet_id": 1040629,
+    "in_response_to_tweet_id": 794335
+  },
+  "duplicate_rows": 0,
+  "n_initiating_tweets": 794335,
+  "n_response_tweets": 2017439,
+  "n_unique_authors": 702777,
+  "n_unique_reply_targets": 1774822,
+  "timestamp_range": {
+    "min": "2008-05-08 20:13:59+00:00",
+    "max": "2017-12-03 23:14:01+00:00"
+  },
+  "text_length_stats": {
+    "mean": 113.9,
+    "median": 115.0,
+    "min": 1,
+    "max": 513,
+    "p25": 78.0,
+    "p75": 139.0
+  },
+  "n_brand_candidates": 298,
+  "top_brand_candidates": [
+    {
+      "author_id": "AmazonHelp",
+      "total_tweets": 169840,
+      "response_tweets": 169287,
+      "response_ratio": 0.997
+    },
+    {
+      "author_id": "AppleSupport",
+      "total_tweets": 106860,
+      "response_tweets": 106719,
+      "response_ratio": 0.999
+    },
+    {
+      "author_id": "Uber_Support",
+      "total_tweets": 56270,
+      "response_tweets": 56261,
+      "response_ratio": 1.0
+    },
+    {
+      "author_id": "SpotifyCares",
+      "total_tweets": 43265,
+      "response_tweets": 43243,
+      "response_ratio": 0.999
+    },
+    {
+      "author_id": "Delta",
+      "total_tweets": 42253,
+      "response_tweets": 42197,
+      "response_ratio": 0.999
+    },
+    {
+      "author_id": "Tesco",
+      "total_tweets": 38573,
+      "response_tweets": 38501,
+      "response_ratio": 0.998
+    },
+    {
+      "author_id": "AmericanAir",
+      "total_tweets": 36764,
+      "response_tweets": 36598,
+      "response_ratio": 0.995
+    },
+    {
+      "author_id": "TMobileHelp",
+      "total_tweets": 34317,
+      "response_tweets": 34287,
+      "response_ratio": 0.999
+    },
+    {
+      "author_id": "comcastcares",
+      "total_tweets": 33031,
+      "response_tweets": 33007,
+      "response_ratio": 0.999
+    },
+    {
+      "author_id": "British_Airways",
+      "total_tweets": 29361,
+      "response_tweets": 29315,
+      "response_ratio": 0.998
+    },
+    {
+      "author_id": "SouthwestAir",
+      "total_tweets": 28977,
+      "response_tweets": 28889,
+      "response_ratio": 0.997
+    },
+    {
+      "author_id": "VirginTrains",
+      "total_tweets": 27817,
+      "response_tweets": 27522,
+      "response_ratio": 0.989
+    },
+    {
+      "author_id": "Ask_Spectrum",
+      "total_tweets": 25860,
+      "response_tweets": 25807,
+      "response_ratio": 0.998
+    },
+    {
+      "author_id": "XboxSupport",
+      "total_tweets": 24557,
+      "response_tweets": 24341,
+      "response_ratio": 0.991
+    },
+    {
+      "author_id": "sprintcare",
+      "total_tweets": 22381,
+      "response_tweets": 22335,
+      "response_ratio": 0.998
+    },
+    {
+      "author_id": "hulu_support",
+      "total_tweets": 21872,
+      "response_tweets": 21783,
+      "response_ratio": 0.996
+    },
+    {
+      "author_id": "sainsburys",
+      "total_tweets": 19466,
+      "response_tweets": 19417,
+      "response_ratio": 0.997
+    },
+    {
+      "author_id": "GWRHelp",
+      "total_tweets": 19364,
+      "response_tweets": 19294,
+      "response_ratio": 0.996
+    },
+    {
+      "author_id": "AskPlayStation",
+      "total_tweets": 19098,
+      "response_tweets": 18694,
+      "response_ratio": 0.979
+    },
+    {
+      "author_id": "ChipotleTweets",
+      "total_tweets": 18749,
+      "response_tweets": 18612,
+      "response_ratio": 0.993
+    }
+  ],
+  "n_thread_roots_in_dataset": 1771145
+}
