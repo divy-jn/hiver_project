@@ -61,10 +61,18 @@ def prepare_candidate_records(threads):
         
         # Context
         context_parts = []
+        following_brand_response = ""
+        found_target = False
+        
         for m in thread_msgs:
             if m["text"] == text:
-                break
-            context_parts.append(f"[{m['author_type']}]: {m['text'][:100]}")
+                found_target = True
+                continue
+            if not found_target:
+                context_parts.append(f"[{m['author_type']}]: {m['text'][:100]}")
+            elif found_target and m["author_type"] == "brand" and not following_brand_response:
+                following_brand_response = m["text"]
+                
         context = " | ".join(context_parts[-3:])
         
         res_heuristic = t.get("resolution_heuristic", {})
@@ -82,6 +90,7 @@ def prepare_candidate_records(threads):
             "high_frustration_angry": meta["high_frustration_angry"],
             "requires_private_dm": meta["requires_private_dm_handling"],
             "context": context,
+            "following_brand_response": following_brand_response,
         })
     return pd.DataFrame(records)
 
@@ -148,6 +157,7 @@ def create_golden_csv(golden_df: pd.DataFrame):
         "thread_id",
         "text",
         "context",
+        "following_brand_response",
         "label_status",
         "human_editable_intent",
         "human_editable_escalation",
@@ -248,13 +258,19 @@ def validate_golden_set(path):
 
     print("\n--- Validation Report ---")
     
+    print(f"\nTotal Rows: {len(df)}")
+    
     print("\nLabel Status Distribution:")
     for status, count in df["label_status"].value_counts().items():
         print(f"  {status}: {count}")
         
-    print("\nIntent Distribution:")
+    print("\nIntent Distribution (Human Editable):")
     for intent, count in df["human_editable_intent"].value_counts().items():
         print(f"  {intent}: {count} ({count/len(df):.1%})")
+        
+    print("\nEscalation Distribution (Human Editable):")
+    for esc, count in df["human_editable_escalation"].value_counts().items():
+        print(f"  {esc}: {count} ({count/len(df):.1%})")
 
     # Leakage checks
     train_path = DATA_PROCESSED / "training_set.csv"
