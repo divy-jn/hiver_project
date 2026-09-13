@@ -33,18 +33,19 @@ Engineering decisions made during the design and implementation of the AI custom
 
 ---
 
-## 3. TF-IDF Clustering for Intent Discovery (Not Banking77 or Manual)
+## 3. Rule-based Heuristic Intent Discovery (Not Unsupervised Clustering or Manual)
 
-**Decision**: Derive intents from the brand's actual data using TF-IDF + KMeans clustering, then label clusters with LLM assistance.
+**Decision**: Derive intents from the brand's actual data using rule/keyword-based categorization aligned to observed customer issues, combined with an independent metadata/risk layer.
 
 **Alternatives**:
+- Unsupervised clustering (TF-IDF + KMeans)
 - Use an off-the-shelf taxonomy like Banking77
 - Manually define intents by reading sample messages
 - Use LLM to generate taxonomy from scratch
 
-**Why selected**: Banking77 doesn't match Twitter support workflows. Manual labeling doesn't scale and introduces prior bias. TF-IDF clustering reflects the actual distribution of customer issues for this specific brand. LLM labeling of clusters is a practical middle ground — data-driven structure with human-readable labels.
+**Why selected**: Unsupervised clustering (KMeans) combined with LLM labeling proved brittle (e.g., LLM JSON parsing failures) and often produced overlapping, temporally biased intents (like mixing specific iOS 11 launch bugs into every cluster). A rule-based keyword mapping ensures a stable, deterministic taxonomy (8 clear intents) that cleanly separates the core technical issue from independent metadata like "angry tone" or "repeated issue".
 
-**Trade-off**: Cluster boundaries are imperfect. Some intents may overlap. This is honest — we document the ambiguity rather than pretending clean categories exist.
+**Trade-off**: Requires manual curation of keywords for the target brand (AppleSupport). While less "autonomous" than clustering, it yields a significantly more reliable evaluation baseline.
 
 ---
 

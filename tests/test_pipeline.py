@@ -27,12 +27,12 @@ def test_golden_set_validation():
     assert 150 <= len(df) <= 250, f"Golden set size {len(df)} outside 150-250 range"
 
     # Required columns
-    for col in ["example_id", "text", "intent", "should_escalate"]:
+    for col in ["example_id", "text", "human_editable_intent", "human_editable_escalation"]:
         assert col in df.columns, f"Missing column: {col}"
 
     # No missing required fields
     assert df["text"].notna().all()
-    assert df["intent"].notna().all()
+    assert df["human_editable_intent"].notna().all()
 
     # No duplicates
     assert df["text"].duplicated().sum() == 0, "Duplicate messages in golden set"
@@ -76,9 +76,12 @@ def test_malformed_json_handling():
     assert result["intent"] == "billing"
 
 
-def test_classify_tone():
-    """Test tone classification helper."""
-    from src.create_golden_set import classify_tone
-    assert classify_tone("I'm furious and this is unacceptable!!") == "angry"
-    assert classify_tone("please help me, thank you so much") == "polite"
-    assert classify_tone("my order hasn't arrived") == "neutral"
+def test_extract_metadata():
+    """Test metadata extraction helper."""
+    from src.discover_intents import extract_metadata
+    meta_angry = extract_metadata("I'm furious and this is unacceptable shit!!")
+    assert meta_angry["high_frustration_angry"] == True
+    
+    meta_security = extract_metadata("my account was hacked and unauthorized charge")
+    assert meta_security["security_account_sensitive"] == True
+    assert meta_security["requires_private_dm_handling"] == True
